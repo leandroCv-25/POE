@@ -1,5 +1,7 @@
 package com.ifsp.instalamento.model.service;
 
+import java.util.List;
+
 import javax.persistence.EntityTransaction;
 
 import com.ifsp.instalamento.estrutura.util.VariaveisProjeto;
@@ -24,7 +26,7 @@ public class UserService extends ConexaoBancoService {
 			try {
 
 				trx.begin();
-				this.getUsuarioDao().save(user);
+				this.getUserDao().save(user);
 				trx.commit();
 
 			} catch (Exception ex) {
@@ -42,28 +44,28 @@ public class UserService extends ConexaoBancoService {
 		}
 		return toReturn; 
 	}
-	
-public Integer update(User user) {
-		
+
+	public Integer update(User user) {
+
 		Integer toReturn = 0;
-		
+
 		EntityTransaction trx = this.getTransaction();
-		
+
 		if ( validarDigitacao(user) == VariaveisProjeto.DIGITACAO_OK) {
-		
+
 			try {
-				
+
 				trx.begin();
-				this.getUsuarioDao().update(user);
+				this.getUserDao().update(user);
 				trx.commit();
-				
+
 			} catch (Exception ex) {
 				ex.printStackTrace();
 				if ( trx.isActive() ) {
 					trx.rollback();
 				}
 				toReturn = VariaveisProjeto.ERRO_ALTERACAO;
-				
+
 			} finally {
 				this.close();
 			}
@@ -72,12 +74,40 @@ public Integer update(User user) {
 		}
 		return toReturn; 
 	}
-	
-	
-	public User findById(Integer id) {
-		return this.getUsuarioDao().findById(id);
+
+	public Integer delete(User user) {
+		Integer toReturn = 0;
+		EntityTransaction trx = this.getTransaction();
+		try {
+
+			trx.begin();
+			User userEncontrado = this.getUserDao().findById(user.getId());
+			this.getUserDao().remove(userEncontrado);;
+			trx.commit();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			if ( trx.isActive() ) {
+				trx.rollback();
+			}
+			toReturn = VariaveisProjeto.ERRO_EXCLUSAO;
+
+		} finally {
+			this.close();
+		}
+
+		return toReturn; 
 	}
-	
+
+
+	public User findById(Integer id) {
+		return this.getUserDao().findById(id);
+	}
+
+	public List<User> findAll(){
+		return this.getUserDao().findAll(User.class);
+	}
+
 	public Integer validarDigitacao(User user) {
 		if ( VariaveisProjeto.digitacaoCampo(user.getUsername())) {
 			return VariaveisProjeto.CAMPO_VAZIO;
@@ -85,7 +115,8 @@ public Integer update(User user) {
 		return VariaveisProjeto.DIGITACAO_OK;
 	}
 
-	public UserDao getUsuarioDao() {
+
+	public UserDao getUserDao() {
 		return userDao;
 	}
 
